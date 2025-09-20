@@ -8,6 +8,7 @@ const path = require('path');
 // Import routes
 const authRoutes = require('./src/routes/authRoutes');
 const todoRoutes = require('./src/routes/todoRoutes');
+const userRoutes = require('./src/routes/userRoutes');
 
 // Create Express app
 const app = express();
@@ -28,6 +29,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/todos', todoRoutes);
+app.use('/api/user', userRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -35,7 +37,8 @@ app.get('/', (req, res) => {
     message: 'Welcome to MERN Todo API',
     endpoints: {
       auth: '/api/auth',
-      todos: '/api/todos'
+      todos: '/api/todos',
+      user: '/api/user'
     }
   });
 });

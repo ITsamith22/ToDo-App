@@ -7,6 +7,7 @@ const path = require('path');
 
 // Import routes
 const authRoutes = require('./src/routes/authRoutes');
+const todoRoutes = require('./src/routes/todoRoutes');
 
 // Create Express app
 const app = express();
@@ -26,10 +27,17 @@ app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/todos', todoRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to MERN Todo API' });
+  res.json({ 
+    message: 'Welcome to MERN Todo API',
+    endpoints: {
+      auth: '/api/auth',
+      todos: '/api/todos'
+    }
+  });
 });
 
 // Error handling middleware

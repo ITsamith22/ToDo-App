@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
 
 // Import routes
 const authRoutes = require('./src/routes/authRoutes');
@@ -20,8 +21,16 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
+
+// Basic route
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to MERN Todo API' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

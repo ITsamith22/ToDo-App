@@ -16,21 +16,48 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     // Create unique filename: userId-timestamp.extension
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
+    const extension = path.extname(file.originalname).toLowerCase();
     cb(null, `${req.user ? req.user._id : 'temp'}-${uniqueSuffix}${extension}`);
   }
 });
 
-// File filter to only allow images
+// More flexible file filter
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  console.log('File upload details:', {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    fieldname: file.fieldname
+  });
 
-  if (mimetype && extname) {
+  // Allow common image types - more comprehensive list
+  const allowedMimes = [
+    'image/jpeg',
+    'image/jpg', 
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/bmp',
+    'image/tiff'
+  ];
+
+  // Also check file extensions as fallback
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'];
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+
+  // Check both MIME type and extension (more flexible)
+  const isValidMime = allowedMimes.includes(file.mimetype);
+  const isValidExtension = allowedExtensions.includes(fileExtension);
+
+  if (isValidMime || isValidExtension) {
+    console.log('File accepted:', file.originalname);
     return cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed (jpeg, jpg, png, gif)'));
+    console.log('File rejected:', {
+      mimetype: file.mimetype,
+      extension: fileExtension,
+      originalname: file.originalname
+    });
+    return cb(new Error(`Invalid file type. Received MIME type: ${file.mimetype}, Extension: ${fileExtension}. Only image files are allowed.`));
   }
 };
 
@@ -46,8 +73,10 @@ const upload = multer({
 // Middleware for single profile image upload
 const uploadProfileImage = upload.single('profileImage');
 
-// Error handling middleware for multer
+// Enhanced error handling middleware for multer
 const handleUploadError = (err, req, res, next) => {
+  console.log('Upload error occurred:', err);
+  
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
@@ -55,6 +84,10 @@ const handleUploadError = (err, req, res, next) => {
         message: 'File too large. Maximum size is 5MB'
       });
     }
+    return res.status(400).json({
+      success: false,
+      message: `Upload error: ${err.message}`
+    });
   }
   
   if (err) {
